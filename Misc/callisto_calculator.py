@@ -7,9 +7,9 @@ def tick_rounder(n):
 artio_drop_rate = 1 / 912
 callisto_drop_rate = 1 / 360
 
-count_of_players = 0
-callisto_ttk = 0
-artio_ttk = 62
+count_of_players = 3
+callisto_ttk = 53
+artio_ttk = 0
 if count_of_players > 0:
     if callisto_ttk > 0:
         artio_ttk = (callisto_drop_rate**(-1) * count_of_players * callisto_ttk) / artio_drop_rate**(-1)
