@@ -18,16 +18,16 @@ def pointy(n):
 def distance(x1, y1, x2, y2):
     return (((x2-x1)**2) + ((y2 - y1)**2))**0.5
 
-shawty = 1000000
+shaw = 1000000
 x = 0
 while (x < k):
     y = 0
     while (y < k):
-        bigD = distance(pointx(x), pointy(x), pointx(y), pointy(y))
+        big = distance(pointx(x), pointy(x), pointx(y), pointy(y))
         print(x)
-        if (bigD < shawty) and (bigD != 0):
-            shawty = bigD
+        if (big < shaw) and (big != 0):
+            shaw = big
         y+=1
     x+=1
 
-print(shawty)
+print(shaw)

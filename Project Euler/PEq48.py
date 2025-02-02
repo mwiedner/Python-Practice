@@ -1,7 +1,7 @@
 sum = 0
-poop = 1
+p = 1
 
-while (poop <= 1000):
-    sum += poop**poop
-    poop+=1
+while (p <= 1000):
+    sum += p**p
+    p+=1
 print (sum)
