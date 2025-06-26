@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from typing import Optional
 
 @dataclass 
 class Match:
@@ -9,6 +10,9 @@ class Match:
     ht_spread : float
     ht_prediction: float
     league: str
+    gamecast_url: str
+    home_team_score: Optional[int] = 0
+    away_team_score: Optional[int] = 0
     #discrepancy_figure: float = 0.0
 
 """
