@@ -18,8 +18,13 @@ headers = {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
     "Connection": "keep-alive"
 }
-
-import csv
+html_parse_dictionary = {
+    "date": ("div", "ScoreCell__ScoreDate Gamestrip__ScoreDate"),
+    "teams": ("h2", "ScoreCell__TeamName ScoreCell__TeamName--displayName db"),
+    "away_prediction": ("div", "matchupPredictor__teamValue matchupPredictor__teamValue--b left-0 top-0 flex items-baseline absolute copy"),
+    "odds": ("div", "FTMw FuEs "),
+    "scores": ("div", "Gamestrip__Score relative tc w-100 fw-heavy-900 h2 clr-gray-01")
+}
 
 def write_to_csv(M, path):
     # If the file does not exist, write the header first
@@ -53,7 +58,9 @@ def calculate_correlation(data_path = os.getcwd() + r"completed_matches_data_col
 def api_call(league, yesterday_collection=False):
     matches = []
     if yesterday_collection:
-        url = "something_else"
+        # Calculate yesterday's date
+        yesterday = date.today() - timedelta(days=1)
+        url = f"https://www.espn.com/{league}/scoreboard/_/date/{yesterday.strftime('%Y%m%d')}"
     else:
         url = f"https://www.espn.com/{league}/scoreboard"
 
@@ -73,23 +80,22 @@ def api_call(league, yesterday_collection=False):
             gc_response = requests.get(gamecast_url, headers=headers)
             gc_soup = BeautifulSoup(gc_response.text, "html.parser")
 
-            print(gc_soup)
-
-            #date =
-            #home_team = 
-            #away_team = 
-            #ht_moneyline = 
-            #ht_spread =
-            #ht_prediction =
-            #home_team_score = 
-            #away_team_score = 
+            for var in html_parse_dictionary:
+                if var in ["teams", "scores"]:
+                    html_item = soup.find_all(html_parse_dictionary[var][0], class_=html_parse_dictionary[var][0])
+                    html_item[0].get_text(strip=True)
+                html_item = gc_soup.find(html_parse_dictionary[var][0], class_=html_parse_dictionary[var][0]])
+                if predictor_div:
+                    ht_prediction = predictor_div.contents[0].strip()
+                else:
+                    ht_prediction = None
             
-            #M = Match(date=,home_team=,away_team=,ht_moneyline=,ht_spread=,ht_prediction=,league=league,gamecast_url=gamecast_url,home_team_score=home_team_score if yesterday_collection else None, away_team_score=away_team_score if yesterday_collection else None)
+            #M = Match(date,home_team,away_team,ht_moneyline,ht_spread=,ht_prediction=,league=league,gamecast_url=gamecast_url,home_team_score=home_team_score if yesterday_collection else None, away_team_score=away_team_score if yesterday_collection else None)
             #matches.append(M)
     return matches
 
 def notifier(M):
-    #print(f"{M.away_team} vs {M.home_team} on {M.date} identified. Home Team Prediction: {M.ht_prediction}, Moneyline: {M.ht_moneyline}, Spread: {M.ht_spread}")
+    print(f"{M.away_team} vs {M.home_team} on {M.date} identified. Home Team Prediction: {M.ht_prediction}, Moneyline: {M.ht_moneyline}, Spread: {M.ht_spread}")
     return
 """
 Main loop logic
@@ -101,7 +107,7 @@ Main loop logic
     4. If 
 """
 
-print(api_call("nba"))
+print(api_call("mlb"))
 
 for league in leagues:
     today_matches = api_call(league)
@@ -110,4 +116,4 @@ for league in leagues:
             notifier(read_Match)
     yesterday_matches = api_call(league, True)
     for read_Match in yesterday_matches:
-        write_to_csv(M, path=os.getcwd() + r"completed_matches_data_collection.csv")
+        write_to_csv(read_Match, path=os.getcwd() + r"completed_matches_data_collection.csv")
