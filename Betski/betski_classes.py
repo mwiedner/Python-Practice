@@ -3,17 +3,17 @@ from typing import Optional
 
 @dataclass 
 class Match:
-    date: str
-    home_team: str
-    away_team: str
-    ht_moneyline: float
-    ht_spread : float
-    ht_prediction: float
-    league: str
-    gamecast_url: str
-    home_team_score: Optional[int] = 0
-    away_team_score: Optional[int] = 0
-    #discrepancy_figure: float = 0.0
+    date: Optional[str] = None
+    home_team: Optional[str] = None
+    away_team: Optional[str] = None
+    ht_moneyline: Optional[float] = None
+    ht_spread: Optional[float] = None
+    ht_prediction: Optional[float] = None
+    league: Optional[str] = None
+    gamecast_url: Optional[str] = None
+    home_team_score: Optional[int] = None
+    away_team_score: Optional[int] = None
+    #discrepancy_figure: Optional[float] = None
 
 """
 For a given match, the moneyline figure and prediction figure are expected to correlate.

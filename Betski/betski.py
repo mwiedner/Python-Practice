@@ -18,12 +18,22 @@ headers = {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
     "Connection": "keep-alive"
 }
-html_parse_dictionary = {
-    "date": ("div", "ScoreCell__ScoreDate Gamestrip__ScoreDate"),
-    "teams": ("h2", "ScoreCell__TeamName ScoreCell__TeamName--displayName db"),
-    "away_prediction": ("div", "matchupPredictor__teamValue matchupPredictor__teamValue--b left-0 top-0 flex items-baseline absolute copy"),
-    "odds": ("div", "FTMw FuEs "),
-    "scores": ("div", "Gamestrip__Score relative tc w-100 fw-heavy-900 h2 clr-gray-01")
+html_parse_dictionary_past = {
+    "date": ("div", "n8 GameInfo__Meta", 0),
+    "away_team": ("h2", "ScoreCell__TeamName ScoreCell__TeamName--displayName db", 0),
+    "home_team": ("h2", "ScoreCell__TeamName ScoreCell__TeamName--displayName db", 1),
+    "away_score": ("div", "Gamestrip__Score relative tc w-100 fw-heavy-900 h2 clr-gray-01", 0),
+    "home_score": ("div", "Gamestrip__Score relative tc w-100 fw-heavy-900 h2 clr-gray-01", 1)
+}
+html_parse_dictionary_future = {
+    "date": ("div", "n8 GameInfo__Meta", 0),
+    "away_team": ("h2", "ScoreCell__TeamName ScoreCell__TeamName--displayName db", 0),
+    "home_team": ("h2", "ScoreCell__TeamName ScoreCell__TeamName--displayName db", 1),
+    "away_prediction": ("div", "matchupPredictor__teamValue matchupPredictor__teamValue--b left-0 top-0 flex items-baseline absolute copy", 0),
+    "away_spread": ("div", "FTMw FuEs ", 0),
+    "away_moneyline": ("div", "FTMw FuEs ", 2),
+    "home_moneyline": ("div", "FTMw FuEs ", 5),
+    "home_spread": ("div", "FTMw FuEs ", 4)
 }
 
 def write_to_csv(M, path):
@@ -61,8 +71,10 @@ def api_call(league, yesterday_collection=False):
         # Calculate yesterday's date
         yesterday = date.today() - timedelta(days=1)
         url = f"https://www.espn.com/{league}/scoreboard/_/date/{yesterday.strftime('%Y%m%d')}"
+        html_parse_dict = html_parse_dictionary_past
     else:
         url = f"https://www.espn.com/{league}/scoreboard"
+        html_parse_dict = html_parse_dictionary_future
 
     # Send a GET request to the webpage
     response = requests.get(url, headers=headers)
@@ -80,18 +92,15 @@ def api_call(league, yesterday_collection=False):
             gc_response = requests.get(gamecast_url, headers=headers)
             gc_soup = BeautifulSoup(gc_response.text, "html.parser")
 
-            for var in html_parse_dictionary:
-                if var in ["teams", "scores"]:
-                    html_item = soup.find_all(html_parse_dictionary[var][0], class_=html_parse_dictionary[var][0])
-                    html_item[0].get_text(strip=True)
-                html_item = gc_soup.find(html_parse_dictionary[var][0], class_=html_parse_dictionary[var][0]])
-                if predictor_div:
-                    ht_prediction = predictor_div.contents[0].strip()
-                else:
-                    ht_prediction = None
-            
-            #M = Match(date,home_team,away_team,ht_moneyline,ht_spread=,ht_prediction=,league=league,gamecast_url=gamecast_url,home_team_score=home_team_score if yesterday_collection else None, away_team_score=away_team_score if yesterday_collection else None)
-            #matches.append(M)
+            M = Match()
+
+            for var in html_parse_dict:
+                html_item = gc_soup.find_all(html_parse_dict[var][0], class_=html_parse_dict[var][1])
+                value = html_item[html_parse_dict[var][2]].get_text(strip=True)
+                #html_item = gc_soup.find(html_parse_dictionary[var][0], class_=html_parse_dictionary[var][0]])
+                setattr(M, var, value)
+
+            matches.append(M)
     return matches
 
 def notifier(M):
@@ -107,7 +116,7 @@ Main loop logic
     4. If 
 """
 
-print(api_call("mlb"))
+print(api_call("wnba"))
 
 for league in leagues:
     today_matches = api_call(league)
