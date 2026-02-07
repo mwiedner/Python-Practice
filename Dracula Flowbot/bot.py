@@ -5,7 +5,7 @@ import asyncio
 from datetime import datetime, time, timedelta
 
 # ---------------- Configuration ----------------
-CHANNEL_ID = 1111443524974551080  # <-- Replace with your target channel ID
+CHANNEL_ID = 1067146988572913826  #1111443524974551080  # <-- Replace with your target channel ID
 TARGET_HOUR = 9                   # Hour of day (24h format)
 TARGET_MINUTE = 0                 # Minute of day
 TIMEZONE_OFFSET = -5              # Eastern Time (UTC-5)
