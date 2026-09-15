@@ -2,6 +2,7 @@ import discord
 import os
 import random
 import sys
+import json
 from datetime import datetime, timedelta
 
 # ---------------- Configuration ----------------
@@ -19,6 +20,7 @@ client = discord.Client(intents=intents)
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 RECORD_FILE = os.path.join(script_dir, "last_sent.txt")
+QUEUE_FILE = os.path.join(script_dir, "queue_state.json")
 
 
 def get_today_str():
@@ -52,6 +54,53 @@ def load_affirmations():
 affirmations = load_affirmations()
 
 
+def load_queue_state():
+    """Load the saved queue (a shuffled list of affirmations not yet sent
+    in the current cycle). Returns None if there's no valid saved state."""
+    if not os.path.exists(QUEUE_FILE):
+        return None
+    try:
+        with open(QUEUE_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return data.get("queue", [])
+    except (json.JSONDecodeError, OSError):
+        return None
+
+
+def save_queue_state(queue):
+    with open(QUEUE_FILE, "w", encoding="utf-8") as f:
+        json.dump({"queue": queue}, f)
+
+
+def get_next_affirmation():
+    """Pull the next affirmation from the queue without repeating any
+    until the full list has been sent, then reshuffle and start over.
+
+    Also tolerates affirmations.txt changing between runs: any queued
+    entries that no longer exist in the current list are dropped, and
+    any new entries not yet queued are added in.
+    """
+    queue = load_queue_state()
+
+    if not queue:
+        queue = affirmations.copy()
+        random.shuffle(queue)
+    else:
+        # Reconcile with the current affirmations.txt contents.
+        queue = [a for a in queue if a in affirmations]
+        new_entries = [a for a in affirmations if a not in queue]
+        if new_entries:
+            random.shuffle(new_entries)
+            queue.extend(new_entries)
+        if not queue:
+            queue = affirmations.copy()
+            random.shuffle(queue)
+
+    chosen = queue.pop(0)
+    save_queue_state(queue)
+    return chosen
+
+
 @client.event
 async def on_ready():
     print(f"Logged in as {client.user}")
@@ -60,7 +109,7 @@ async def on_ready():
     if channel is None:
         print("Channel not found!")
     else:
-        await channel.send(random.choice(affirmations))
+        await channel.send(get_next_affirmation())
         mark_sent_today()
         print("Affirmation sent. Recording today's date and closing.")
 
